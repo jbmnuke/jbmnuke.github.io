@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirement Timer</title>
+    <link rel="stylesheet" href="master.css">
+</head>
+<body>
+    <div id="currentDateTime" class="countdown-text"></div>
+    <div id="currentUTCDateTime" class="countdown-text utc-text"></div>
+    <div id="countdown" class="countdown-text">
+        <span class="years"></span>
+        <span class="months"></span>
+        <span class="days"></span>
+        <span class="hours"></span>
+        <span class="minutes"></span>
+        <span class="seconds"></span>
+        <span class="milliseconds"></span>
+    </div>
+
+    <script>
+        function padZero(number, length = 2) {
+            return number.toString().padStart(length, '0');
+        }
+
+        function getTimezoneAbbreviation(date) {
+            const options = { timeZoneName: 'short' };
+            const formatter = new Intl.DateTimeFormat('en-US', options);
+            const parts = formatter.formatToParts(date);
+            const timeZoneName = parts.find(part => part.type === 'timeZoneName').value;
+            return timeZoneName.match(/\b\w{3}\b/)[0];  // Extract the three-letter abbreviation
+        }
+
+        function formatDateTime(date) {
+            const year = date.getFullYear();
+            const month = padZero(date.getMonth() + 1);
+            const day = padZero(date.getDate());
+            const hours = padZero(date.getHours());
+            const minutes = padZero(date.getMinutes());
+            const seconds = padZero(date.getSeconds());
+            const timeZone = getTimezoneAbbreviation(date);
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} (${timeZone})`;
+        }
+
+        function formatUTCDateTime(date) {
+            const year = date.getUTCFullYear();
+            const month = padZero(date.getUTCMonth() + 1);
+            const day = padZero(date.getUTCDate());
+            const hours = padZero(date.getUTCHours());
+            const minutes = padZero(date.getUTCMinutes());
+            const seconds = padZero(date.getUTCSeconds());
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} (UTC)`;
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const endDate = new Date('February 19, 2029 09:00:00').getTime();
+            const distance = endDate - now.getTime();
+
+            const years = Math.floor(distance / (1000 * 60 * 60 * 24 * 365));
+            const months = Math.floor((distance % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+            const days = Math.floor((distance % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
+            const hours = padZero(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+            const minutes = padZero(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)));
+            const seconds = padZero(Math.floor((distance % (1000 * 60)) / 1000));
+            const milliseconds = ('00' + (distance % 1000)).slice(-3);
+
+            document.getElementById('currentDateTime').innerHTML = formatDateTime(now);
+            document.getElementById('currentUTCDateTime').innerHTML = formatUTCDateTime(now);
+
+            document.querySelector('.years').innerHTML = years + ' Years ';
+            document.querySelector('.months').innerHTML = months + ' Months ';
+            document.querySelector('.days').innerHTML = days + ' Days ';
+            document.querySelector('.hours').innerHTML = hours + ' Hours ';
+            document.querySelector('.minutes').innerHTML = minutes + ' Minutes ';
+            document.querySelector('.seconds').innerHTML = seconds + ' Seconds ';
+            document.querySelector('.milliseconds').innerHTML = milliseconds + ' Milliseconds ';
+
+            if (distance < 0) {
+                clearInterval(interval);
+                document.getElementById('countdown').innerHTML = "Time to Retire!!";
+            }
+        }
+
+        function goFullScreenOnLandscape() {
+            if (window.innerHeight < window.innerWidth) {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                }
+            } else {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        window.addEventListener('resize', goFullScreenOnLandscape);
+        window.addEventListener('orientationchange', goFullScreenOnLandscape);
+
+        const interval = setInterval(updateCountdown, 10);
+    </script>
+</body>
+</html>
