@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Retirement Timer</title>
     <link rel="stylesheet" href="master.css">
 </head>
+
 <body>
     <div id="currentDateTime" class="countdown-text"></div>
     <div id="currentUTCDateTime" class="countdown-text utc-text"></div>
@@ -55,32 +57,58 @@
 
         function updateCountdown() {
             const now = new Date();
-            const endDate = new Date('February 15, 2029 09:00:00').getTime();
-            const distance = endDate - now.getTime();
+            const endDate = new Date('February 15, 2029 09:00:00');
+            let distance = endDate - now;
 
-            const years = Math.floor(distance / (1000 * 60 * 60 * 24 * 365));
-            const months = Math.floor((distance % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
-            const days = Math.floor((distance % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
-            const hours = padZero(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
-            const minutes = padZero(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)));
-            const seconds = padZero(Math.floor((distance % (1000 * 60)) / 1000));
-            const milliseconds = ('00' + (distance % 1000)).slice(-3);
+            if (distance < 0) {
+                clearInterval(interval);
+                document.getElementById('countdown').innerHTML = "Time to Retire!!";
+                return;
+            }
 
+            // Calculate complete years
+            let years = 0;
+            let tempDate = new Date(now);
+            while (true) {
+                let nextYear = new Date(tempDate);
+                nextYear.setFullYear(tempDate.getFullYear() + 1);
+                if (nextYear > endDate) break;
+                years++;
+                tempDate = nextYear;
+            }
+
+            // Calculate complete months
+            let months = 0;
+            while (true) {
+                let nextMonth = new Date(tempDate);
+                nextMonth.setMonth(tempDate.getMonth() + 1);
+                if (nextMonth > endDate) break;
+                months++;
+                tempDate = nextMonth;
+            }
+
+            // Calculate remaining components
+            distance = endDate - tempDate;
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            distance -= days * (1000 * 60 * 60 * 24);
+            const hours = Math.floor(distance / (1000 * 60 * 60));
+            distance -= hours * (1000 * 60 * 60);
+            const minutes = Math.floor(distance / (1000 * 60));
+            distance -= minutes * (1000 * 60);
+            const seconds = Math.floor(distance / 1000);
+            const milliseconds = distance % 1000;
+
+            // Update display with padding
             document.getElementById('currentDateTime').innerHTML = formatDateTime(now);
             document.getElementById('currentUTCDateTime').innerHTML = formatUTCDateTime(now);
 
             document.querySelector('.years').innerHTML = years + ' Years ';
             document.querySelector('.months').innerHTML = months + ' Months ';
             document.querySelector('.days').innerHTML = days + ' Days ';
-            document.querySelector('.hours').innerHTML = hours + ' Hours ';
-            document.querySelector('.minutes').innerHTML = minutes + ' Minutes ';
-            document.querySelector('.seconds').innerHTML = seconds + ' Seconds ';
-            document.querySelector('.milliseconds').innerHTML = milliseconds + ' Milliseconds ';
-
-            if (distance < 0) {
-                clearInterval(interval);
-                document.getElementById('countdown').innerHTML = "Time to Retire!!";
-            }
+            document.querySelector('.hours').innerHTML = padZero(hours) + ' Hours ';
+            document.querySelector('.minutes').innerHTML = padZero(minutes) + ' Minutes ';
+            document.querySelector('.seconds').innerHTML = padZero(seconds) + ' Seconds ';
+            document.querySelector('.milliseconds').innerHTML = padZero(milliseconds, 3) + ' Milliseconds ';
         }
 
         function goFullScreenOnLandscape() {
@@ -101,4 +129,5 @@
         const interval = setInterval(updateCountdown, 10);
     </script>
 </body>
+
 </html>
